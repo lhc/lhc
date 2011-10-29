@@ -2,6 +2,8 @@
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 
+from notificacoes.utils import obter_dados_transacao_pagseguro
+
 @require_POST
 def processa_pagseguro(request):
     '''
@@ -16,5 +18,8 @@ def processa_pagseguro(request):
     allowed_hosts = ['pagseguro.uol.com.br',]
     if request.get_host() not in allowed_hosts:
         return HttpResponse(status=403)
+
+    dados = obter_dados_transacao_pagseguro(request.POST['notificationCode'])
+#    armazenar_pagamento(dados)
 
     return HttpResponse()

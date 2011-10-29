@@ -6,6 +6,8 @@ from django.test.client import Client
 
 from notificacoes.utils import obter_dados_transacao_pagseguro
 
+import urllib2
+
 class NotificacaoPagseguroTestCase(TestCase):
     '''
     - Resolver duplicação do host permitido entre o teste e o código
@@ -53,14 +55,11 @@ class NotificacaoPagseguroTestCase(TestCase):
         return self.client.get(reverse('notificacao-pagseguro'))
 
 class ObtencaoDadosTransacaoTestCase(TestCase):
-    '''
-# - mock urllib2
-# - método para obter dados da transação
-    '''
+
     def setUp(self):
         settings.TOKEN_PAGSEGURO = 'AD6D463C6G2F42259B17A6443056C0FA'
         settings.EMAIL_PAGSEGURO = 'usuario@pagseguro.com.br'
-        settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO = 'http://fakeurl.com'
+        settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO = 'http://fakeurl.com%s%s%s'
         self.codigo_notificacao = '766B9C-AD4B044B04DA-77742F5FA653-E1AB24'
 
     def test_settings_obrigatorios(self):
@@ -82,6 +81,18 @@ class ObtencaoDadosTransacaoTestCase(TestCase):
         dados_transacao = obter_dados_transacao_pagseguro(self.codigo_notificacao)
         self.assertTrue('erro' in dados_transacao)
 
+    def test_obter_dados_do_xml(self):
+        import notificacoes.utils
+        notificacoes.utils.urllib2.urlopen = fake_urllib2
+        dados = obter_dados_transacao_pagseguro(self.codigo_notificacao, )
+        self.assertEqual("2011-02-10", dados['date'])
+        self.assertEqual('9E884542-81B3-4419-9A75-BCC6FB495EF1', dados['code'])
+        self.assertEqual('3', dados['status'])
+        self.assertEqual('49900.00', dados['grossAmount'])
+        self.assertEqual('0.00', dados['feeAmount'])
+        self.assertEqual('comprador@uol.com.br', dados['sender_email'])
+        self.assertEqual('Comprador', dados['sender_name'])
+
     def tearDown(self):
         try:
             del settings.TOKEN_PAGSEGURO
@@ -97,3 +108,63 @@ class ObtencaoDadosTransacaoTestCase(TestCase):
             del settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
         except AttributeError:
             pass
+
+def fake_urllib2(*args, **extra):
+    class dummy:
+        def read(self):
+            return '''<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>  
+<transaction>  
+    <date>2011-02-10T16:13:41.000-03:00</date>  
+    <code>9E884542-81B3-4419-9A75-BCC6FB495EF1</code>  
+    <reference>REF1234</reference>  
+    <type>1</type>  
+    <status>3</status>  
+    <paymentMethod>  
+        <type>1</type>  
+        <code>101</code>  
+    </paymentMethod>  
+    <grossAmount>49900.00</grossAmount>  
+    <discountAmount>0.00</discountAmount>  
+    <feeAmount>0.00</feeAmount>  
+    <netAmount>49900.00</netAmount>  
+    <extraAmount>0.00</extraAmount>  
+    <installmentCount>1</installmentCount>  
+    <itemCount>2</itemCount>  
+    <items>  
+        <item>  
+            <id>0001</id>  
+            <description>Notebook Prata</description>  
+            <quantity>1</quantity>  
+            <amount>24300.00</amount>  
+        </item>  
+        <item>  
+            <id>0002</id>  
+            <description>Notebook Rosa</description>  
+            <quantity>1</quantity>  
+            <amount>25600.00</amount>  
+        </item>  
+    </items>  
+    <sender>  
+        <name>Comprador</name>  
+        <email>comprador@uol.com.br</email>  
+        <phone>  
+            <areaCode>11</areaCode>  
+            <number>56273440</number>  
+        </phone>  
+    </sender>  
+    <shipping>  
+        <address>  
+            <street>Av. Brig. Faria Lima</street>  
+            <number>1384</number>  
+            <complement>5o andar</complement>  
+            <district>Jardim Paulistano</district>  
+            <postalCode>01452002</postalCode>  
+            <city>Sao Paulo</city>  
+            <state>SP</state>  
+            <country>BRA</country>  
+        </address>  
+        <type>1</type>  
+        <cost>21.50</cost>  
+    </shipping>  
+</transaction>  '''
+    return dummy()
