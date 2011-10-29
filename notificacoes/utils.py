@@ -1,6 +1,9 @@
 #-*- coding: utf-8 -*-
 from django.conf import settings
 
+from associados.models import Associado
+from pagamentos.models import Doacao
+
 import time
 import urllib2
 import xml.dom.minidom as minidom
@@ -44,3 +47,33 @@ def obter_dados_transacao_pagseguro(codigo_notificacao):
         dados_transacao['erro'] = 'settings incompleto'
 
     return dados_transacao
+
+def armazenar_pagamento(dados):
+    tipo = 'ESPO'
+    associado = None
+    try:
+        associado = Associado.objects.get(email=dados['sender_email'])
+        if associado:
+            mensalidade = Decimal(associado.valor_mensalidade) > 0 and Decimal(dados["grossAmount"]) >= Decimal(associado.valor_mensalidade)
+        else:
+            mensalidade = None
+
+        tipo = 'MENS' if mensalidade else 'ESPO'
+
+    except Associado.DoesNotExist:
+        pass
+
+    if tipo == 'MENS':
+        descricao = 'Mensalidade de %s paga (R$ %s)' % (associado, dados["grossAmount"])
+    else:
+        descricao = 'Doacao anonima de R$ %s' % (dados["grossAmount"])
+
+    doacao = Doacao(valor=dados['grossAmount'],
+                               data=dados['date'],
+                               origem='PAGS',
+                               referencia=dados['code'],
+                               tipo=tipo,
+                               membro=associado)
+    doacao.descricao = descricao
+    doacao.save()
+

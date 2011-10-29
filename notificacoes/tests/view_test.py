@@ -17,6 +17,10 @@ class NotificacaoPagseguroTestCase(TestCase):
 
     def setUp(self):
         self.client = Client()
+        settings.TOKEN_PAGSEGURO = 'AD6D463C6G2F42259B17A6443056C0FA'
+        settings.EMAIL_PAGSEGURO = 'usuario@pagseguro.com.br'
+        settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO = 'http://fakeurl.com%s%s%s'
+        self.codigo_notificacao = '766B9C-AD4B044B04DA-77742F5FA653-E1AB24'
 
     def test_existe_url_para_notificacao_pagseguro(self):
         """

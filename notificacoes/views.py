@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 
-from notificacoes.utils import obter_dados_transacao_pagseguro
+from notificacoes.utils import armazenar_pagamento, obter_dados_transacao_pagseguro
 
 @require_POST
 def processa_pagseguro(request):
@@ -20,6 +20,6 @@ def processa_pagseguro(request):
         return HttpResponse(status=403)
 
     dados = obter_dados_transacao_pagseguro(request.POST['notificationCode'])
-#    armazenar_pagamento(dados)
+    armazenar_pagamento(dados)
 
     return HttpResponse()
