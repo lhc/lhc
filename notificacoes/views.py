@@ -1,5 +1,4 @@
 #-*- coding: utf-8 -*-
-from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 
@@ -19,15 +18,3 @@ def processa_pagseguro(request):
         return HttpResponse(status=403)
 
     return HttpResponse()
-
-def _obter_dados_transacao(codigo_notificacao):
-    try:
-        TOKEN_PAGSEGURO = settings.TOKEN_PAGSEGURO
-        EMAIL_PAGSEGURO = settings.EMAIL_PAGSEGURO
-        URL_CONSULTA = settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
-
-#        xml_transacao = urllib2.urlopen(url_consulta % (transacao, settings.EMAIL_PAGSEGURO, settings.TOKEN_PAGSEGURO)).read()
-
-        return {}
-    except AttributeError:
-        return {'erro': 'settings incompleto'}

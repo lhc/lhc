@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-from notificacoes.views import _obter_dados_transacao
+from notificacoes.utils import obter_dados_transacao_pagseguro
 
 class NotificacaoPagseguroTestCase(TestCase):
     '''
@@ -64,22 +64,22 @@ class ObtencaoDadosTransacaoTestCase(TestCase):
         self.codigo_notificacao = '766B9C-AD4B044B04DA-77742F5FA653-E1AB24'
 
     def test_settings_obrigatorios(self):
-        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        dados_transacao = obter_dados_transacao_pagseguro(self.codigo_notificacao)
         self.assertTrue('erro' not in dados_transacao)
 
     def test_token_obrigatorio(self):
         del settings.TOKEN_PAGSEGURO
-        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        dados_transacao = obter_dados_transacao_pagseguro(self.codigo_notificacao)
         self.assertTrue('erro' in dados_transacao)
 
     def test_email_obrigatorio(self):
         del settings.EMAIL_PAGSEGURO
-        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        dados_transacao = obter_dados_transacao_pagseguro(self.codigo_notificacao)
         self.assertTrue('erro' in dados_transacao)
 
     def test_url_consulta_notificacao_obrigatorio(self):
         del settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
-        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        dados_transacao = obter_dados_transacao_pagseguro(self.codigo_notificacao)
         self.assertTrue('erro' in dados_transacao)
 
     def tearDown(self):
