@@ -1,14 +1,15 @@
 #-*- coding: utf-8 -*-
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-# - duplicação do host permitido no teste e no codigo
-# - configuração settings TOKEN e EMAIL
-# - mock urllib2
-# - obter xml
+from notificacoes.views import _obter_dados_transacao
 
 class NotificacaoPagseguroTestCase(TestCase):
+    '''
+    - Resolver duplicação do host permitido entre o teste e o código
+    '''
 
     def setUp(self):
         self.client = Client()
@@ -50,3 +51,49 @@ class NotificacaoPagseguroTestCase(TestCase):
         if method == 'POST':
             return self.client.post(reverse('notificacao-pagseguro'), data, **extra)
         return self.client.get(reverse('notificacao-pagseguro'))
+
+class ObtencaoDadosTransacaoTestCase(TestCase):
+    '''
+# - mock urllib2
+# - método para obter dados da transação
+    '''
+    def setUp(self):
+        settings.TOKEN_PAGSEGURO = 'AD6D463C6G2F42259B17A6443056C0FA'
+        settings.EMAIL_PAGSEGURO = 'usuario@pagseguro.com.br'
+        settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO = 'http://fakeurl.com'
+        self.codigo_notificacao = '766B9C-AD4B044B04DA-77742F5FA653-E1AB24'
+
+    def test_settings_obrigatorios(self):
+        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        self.assertTrue('erro' not in dados_transacao)
+
+    def test_token_obrigatorio(self):
+        del settings.TOKEN_PAGSEGURO
+        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        self.assertTrue('erro' in dados_transacao)
+
+    def test_email_obrigatorio(self):
+        del settings.EMAIL_PAGSEGURO
+        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        self.assertTrue('erro' in dados_transacao)
+
+    def test_url_consulta_notificacao_obrigatorio(self):
+        del settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
+        dados_transacao = _obter_dados_transacao(self.codigo_notificacao)
+        self.assertTrue('erro' in dados_transacao)
+
+    def tearDown(self):
+        try:
+            del settings.TOKEN_PAGSEGURO
+        except AttributeError:
+            pass
+
+        try:
+            del settings.EMAIL_PAGSEGURO
+        except AttributeError:
+            pass
+
+        try:
+            del settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
+        except AttributeError:
+            pass
