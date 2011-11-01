@@ -6,7 +6,7 @@ from django.test.client import Client
 
 from pagamentos.models import Doacao
 from notificacoes.utils import obter_dados_transacao_pagseguro
-from notificacoes.tests.helper import *
+from notificacoes.tests.helper import urllib2_pagseguro_mock
 
 import urllib2
 
@@ -53,7 +53,7 @@ class NotificacaoPagseguroTestCase(TestCase):
 
     def test_armazena_doacao_a_partir_do_xml(self):
         import notificacoes.utils
-        notificacoes.utils.urllib2.urlopen = fake_urllib2
+        notificacoes.utils.urllib2.urlopen = urllib2_pagseguro_mock
         self.assertTrue(len(Doacao.objects.all()) == 0)
         response = self._envia_notificacao()
         self.assertTrue(len(Doacao.objects.all()) == 1)

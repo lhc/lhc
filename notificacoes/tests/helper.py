@@ -1,6 +1,10 @@
 #-*- coding: utf-8 -*-
 
-def fake_urllib2(*args, **extra):
+def urllib2_pagseguro_mock(*args, **extra):
+    '''
+    Mock da urllib2 para permitir o teste da notificação
+    do Pagseguro
+    '''
     class dummy:
         def read(self):
             return '''<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>  
