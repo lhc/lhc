@@ -67,5 +67,3 @@ class NotificacaoPagseguroTestCase(TestCase):
             return self.client.post(reverse('notificacao-pagseguro'), data, **extra)
         return self.client.get(reverse('notificacao-pagseguro'))
 
-class NotificacaoMoipTestCase(TestCase):
-    pass
