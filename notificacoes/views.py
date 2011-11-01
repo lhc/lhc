@@ -23,3 +23,6 @@ def processa_pagseguro(request):
     armazenar_pagamento(dados)
 
     return HttpResponse()
+
+def processa_moip(request):
+    pass

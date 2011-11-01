@@ -7,7 +7,7 @@ from notificacoes.utils import obter_dados_transacao_pagseguro
 
 #import urllib2
 
-class ObtencaoDadosTransacaoTestCase(TestCase):
+class ObtencaoDadosTransacaoPagseguroTestCase(TestCase):
 
     def setUp(self):
         settings.TOKEN_PAGSEGURO = 'AD6D463C6G2F42259B17A6443056C0FA'
@@ -61,4 +61,3 @@ class ObtencaoDadosTransacaoTestCase(TestCase):
             del settings.URL_CONSULTA_NOTIFICACAO_PAGSEGURO
         except AttributeError:
             pass
-
