@@ -1,11 +1,13 @@
 #-*- coding: utf-8 -*-
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 from notificacoes.utils import obter_dados_transacao_pagseguro
 from pagamentos.models import Lancamento
 
 @require_POST
+@csrf_exempt
 def processa_pagseguro(request):
     '''
     Processa uma notificação de transação enviada pelo PagSeguro quando ocorrer
@@ -26,6 +28,7 @@ def processa_pagseguro(request):
     return HttpResponse()
 
 @require_POST
+@csrf_exempt
 def processa_moip(request):
     required_fields = ['id_transacao', 'valor', 'status_pagamento', 'cod_moip', 'forma_pagamento', 'tipo_pagamento', 'email_consumidor']
     for field in required_fields:
