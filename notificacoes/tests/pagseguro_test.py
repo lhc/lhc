@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
 
-from pagamentos.models import Doacao
+from pagamentos.models import Lancamento
 from notificacoes.utils import obter_dados_transacao_pagseguro
 from notificacoes.tests.helper import urllib2_pagseguro_mock
 
@@ -54,9 +54,9 @@ class NotificacaoPagseguroTestCase(TestCase):
     def test_armazena_doacao_a_partir_do_xml(self):
         import notificacoes.utils
         notificacoes.utils.urllib2.urlopen = urllib2_pagseguro_mock
-        self.assertTrue(len(Doacao.objects.all()) == 0)
+        self.assertTrue(len(Lancamento.objects.all()) == 0)
         response = self._envia_notificacao()
-        self.assertTrue(len(Doacao.objects.all()) == 1)
+        self.assertTrue(len(Lancamento.objects.all()) == 1)
 
     def _envia_notificacao(self, method='POST', data={'notificationCode':'', 'notificationType':''}, **extra):
 

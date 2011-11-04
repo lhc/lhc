@@ -5,7 +5,6 @@ from django.test import TestCase
 from notificacoes.tests.helper import *
 from notificacoes.utils import obter_dados_transacao_pagseguro
 
-#import urllib2
 
 class ObtencaoDadosTransacaoPagseguroTestCase(TestCase):
 
@@ -36,15 +35,16 @@ class ObtencaoDadosTransacaoPagseguroTestCase(TestCase):
 
     def test_obter_dados_do_xml(self):
         import notificacoes.utils
-        notificacoes.utils.urllib2.urlopen = fake_urllib2
-        dados = obter_dados_transacao_pagseguro(self.codigo_notificacao, )
-        self.assertEqual("2011-02-10", dados['date'])
-        self.assertEqual('9E884542-81B3-4419-9A75-BCC6FB495EF1', dados['code'])
-        self.assertEqual('3', dados['status'])
-        self.assertEqual('49900.00', dados['grossAmount'])
-        self.assertEqual('0.00', dados['feeAmount'])
-        self.assertEqual('comprador@uol.com.br', dados['sender_email'])
-        self.assertEqual('Comprador', dados['sender_name'])
+        notificacoes.utils.urllib2.urlopen = urllib2_pagseguro_mock
+        dados = obter_dados_transacao_pagseguro(self.codigo_notificacao)
+
+        dados_lancamento = dados['lancamento']
+        dados_pagador = dados['pagador']
+
+        self.assertEqual("2011-02-10", dados_lancamento['data'])
+        self.assertEqual('9E884542-81B3-4419-9A75-BCC6FB495EF1', dados_lancamento['referencia'])
+        self.assertEqual('49900.00', dados_lancamento['valor'])
+        self.assertEqual('comprador@uol.com.br', dados_pagador['email'])
 
     def tearDown(self):
         try:
