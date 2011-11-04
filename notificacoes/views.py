@@ -32,7 +32,18 @@ def processa_moip(request):
         if field not in request.POST:
             return HttpResponse(status=400)
 
-    # TODO criar dicionário com os dados
-    #armazenar_pagamento(dados)
+    import datetime
+    lancamento = {}
+    lancamento['data'] = datetime.date.today()
+    lancamento['valor'] = request.POST['valor']
+    lancamento['referencia'] = request.POST['id_transacao']
+
+    pagador = {}
+    pagador['email'] = request.POST['email_consumidor']
+
+    dados = {'lancamento': lancamento, 'pagador': pagador}
+
+    lancamento = Lancamento(**dados['lancamento'])
+    lancamento.save(email_pagador=dados['pagador']['email'])
 
     return HttpResponse()
