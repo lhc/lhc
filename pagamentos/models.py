@@ -2,83 +2,61 @@
 from django.db import models
 from associados.models import Associado
 
-# Create your models here.
-class Pagamento(models.Model):
-    data = models.DateField()
-    valor = models.DecimalField(decimal_places=3, max_digits=50)
-    descricao = models.CharField(max_length=100)
+TIPO_LANCAMENTO = (
+    ('R', u'Receita'),
+    ('D', u'Despesa'),
+)
 
-    # TODO gostaria de o acoplamento não fosse acoplado
-    # com um associado e sim com qualquer model que o 
-    # desenvolvedor quiser.
-    associado = models.ForeignKey(Associado)
+ORIGEM = (
+    ('PAGSEGURO', u'PagSeguro'),
+    ('MOIP', u'MoIP'),
+    ('DOACAO', u'Caixa de Doação'),
+)
+
+FINALIDADE = (
+    (u'Receita', (
+            ('MENSAL', u'Mensalidade'),
+            ('DOACAO', u'Doação Espontânea'),
+        )
+    ),
+    (u'Despesa', (
+            ('ALUGUEL', u'Aluguel'),
+            ('INFRA', u'Infra-Estrutura'),
+            ('EQUIPAMENT', u'Equipamentos'),
+            ('REEMBOLSO', u'Reembolso'),
+        )
+    ),
+)
+
+MESES = ['', 'Janeiro', 'Fevereiro', u'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+class Lancamento(models.Model):
+    data = models.DateField(verbose_name=u'Data')
+    tipo = models.CharField(max_length=1, verbose_name=u'Tipo', choices=TIPO_LANCAMENTO)
+    descricao = models.CharField(max_length=100, verbose_name=u'Descrição')
+    valor = models.DecimalField(decimal_places=2, max_digits=20, verbose_name=u'Valor')
+    origem = models.CharField(max_length=10, verbose_name=u'Origem', choices=ORIGEM)
+    finalidade = models.CharField(max_length=10, verbose_name=u'Finalidade', choices=FINALIDADE)
+    referencia = models.CharField(max_length=100, verbose_name=u'Referência', blank=True, null=True)
+    associado = models.ForeignKey(Associado, verbose_name=u'Associado', blank=True, null=True)
 
     def __unicode__(self):
-        return '%s - %s - %s - %s' % (self.associado, self.data, self.valor, self.descricao)
+        return '[%s - R$ %s] %s' % (self.data, self.valor, self.descricao)
 
+    def save(self, email_pagador=None, *args, **kwargs):
+        if email_pagador is not None:
+            try:
+                self.associado = Associado.objects.get(email=email_pagador)
+                if self.valor == self.associado.valor_mensalidade:
+                    self.finalidade = 'MENSAL'
+                    self.descricao = 'Mensalidade de %s do associado %s' % (MESES[self.data.month], self.associado.nome,)
+            except Associado.DoesNotExist:
+                self.finalidade = 'DOACAO'
+                self.descricao = u'Doação Anônima'
 
-class Doacao(models.Model):
-  class Meta:
-    verbose_name_plural = 'Doações'
-    verbose_name = 'doação'
+        super(Lancamento, self).save(*args, **kwargs)
 
-  def __unicode__(self):
-    if self.membro:
-      return '%s %s (R$ %s)' % (self.origem, self.membro, self.valor)
-    return '%s (R$ %s)' % (self.origem, self.valor)
+    class Meta:
+        verbose_name = u'lançamento'
+        verbose_name_plural = u'lançamentos'
 
-
-  ORIGEM = (
-    ('MOIP', 'MoIP'),
-    ('PAGS', 'PagSeguro'),
-    ('CAIX', 'Caixa de Doação'),
-    ('TEF ', 'Transferência Bancária'),
-    ('BITC', 'BitCoin'),
-  )
-  MESES = (
-    ('JAN', 'Janeiro'),
-    ('FEV', 'Fevereiro'),
-    ('MAR', 'Março'),
-    ('ABR', 'Abril'),
-    ('MAI', 'Maio'),
-    ('JUN', 'Junho'),
-    ('JUL', 'Julho'),
-    ('AGO', 'Agosto'),
-    ('SET', 'Setembro'),
-    ('OUT', 'Outubro'),
-    ('NOV', 'Novembro'),
-    ('DEZ', 'Dezembro')
-  )
-  TIPOS = (
-    ('MENS', 'Mensalidade'),
-    ('ESPO', 'Espontânea'),
-    ('BUFA', 'Buffer de Aluguel'),
-  )
-
-  valor = models.DecimalField(decimal_places=4, max_digits=10)
-  data = models.DateField()
-
-  origem = models.CharField(max_length=4, choices=ORIGEM)
-  referencia = models.CharField(max_length=256, blank=True, null=True)
-  tipo = models.CharField(max_length=4, choices=TIPOS)
-
-  membro = models.ForeignKey(Associado, blank=True, null=True)
-
-class Despesa(models.Model):
-  def __unicode__(self):
-    if self.descricao:
-      return '%s (%s) (R$ %s)' % (self.tipo, self.descricao, self.valor)
-    return '%s (R$ %s)' % (self.tipo, self.valor)
-
-  TIPOS = (
-    ('ALUG', 'Aluguel'),
-    ('EQIP', 'Equipamento'),
-    ('INFR', 'Infra-estrutura'),
-    ('PRTY', 'Festa'),
-    ('MISC', 'Miscelânea')
-  )
-  tipo = models.CharField(max_length=4, choices=TIPOS)
-  descricao = models.CharField(max_length=1024, blank=True)
-  valor = models.DecimalField(decimal_places=4, max_digits=10)
-  responsavel = models.ForeignKey(Associado)
-  data = models.DateField()
