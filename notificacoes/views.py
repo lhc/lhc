@@ -1,4 +1,5 @@
 #-*- coding: utf-8 -*-
+from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -14,6 +15,15 @@ def processa_pagseguro(request):
     alguma mudança no status de alguma transação.
     (referência: https://pagseguro.uol.com.br/v2/guia-de-integracao/api-de-notificacoes.html)
     '''
+    
+    log = open(settings.LOG_PAGSEGURO, 'a')
+    log.write('Iniciando notificacao\n')
+    for k in request.POST.keys():
+        log.write(k + ' - ' + request.POST[k])
+        log.write('\n')
+    log.write('\n')
+    log.close()
+
     if 'notificationCode' not in request.POST or 'notificationType' not in request.POST:
         return HttpResponse(status=400)
 
