@@ -24,6 +24,7 @@ FINALIDADE = (
             ('INFRA', u'Infra-Estrutura'),
             ('EQUIPAMENT', u'Equipamentos'),
             ('REEMBOLSO', u'Reembolso'),
+            ('TAXA', u'Taxas'),
         )
     ),
 )
